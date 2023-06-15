@@ -19,12 +19,12 @@ import (
 var (
 	dbConnString   = "postgresql://postgres:password@localhost:5432/kat?sslmode=disable"
 	csvFile        = "example.csv"
-	entityName     = "Example"
+	entityName     = "\"Example\""
 	dbMaxIdleConns = 4
 	dbMaxConns     = 100
 	totalWorker    = 100
 	dataHeaders    = []string{
-		"message",
+		"\"message\"",
 	}
 )
 
@@ -77,18 +77,11 @@ func doTheJob(workerIndex int, counter int, db *sql.DB, values []interface{}) {
 				}
 			}()
 
-			quotationEntityName := fmt.Sprintf("\"%s\"", entityName)
-
-			var quotationDataHeaders []string
-			for _, each := range dataHeaders {
-				quotationDataHeaders = append(quotationDataHeaders, fmt.Sprintf("\"%s\"", each))
-			}
-
 			conn, err := db.Conn(context.Background())
 			query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)",
-				quotationEntityName,
-				strings.Join(quotationDataHeaders, ","),
-				strings.Join(generateParams(len(quotationDataHeaders)), ","),
+				entityName,
+				strings.Join(dataHeaders, ","),
+				strings.Join(generateParams(len(dataHeaders)), ","),
 			)
 
 			_, err = conn.ExecContext(context.Background(), query, values...)
